@@ -162,7 +162,7 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
 ## Research flow (`Needs Research`)
 
 1. Find or create the single persistent `## Codex Workpad` comment.
-2. Add or update a `## Research Packet` section with:
+2. Add or update the `### Research Packet` section (under `## Codex Workpad`) with:
    - verified facts;
    - relevant files and sources;
    - current implementation state;
@@ -171,22 +171,24 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
    - recommended planner and triage inputs.
 3. Do not edit product code, Symphony code, runtime config, or repo docs unless the issue is explicitly a docs-only workflow issue and the state has been changed out of `Needs Research`.
 4. Do not open a PR.
-5. Move the issue to `Needs Triage` when the packet is complete. If research is blocked by missing access or human judgment, move to `Human Review` with the exact unblock action.
+5. Move the issue to `Needs Triage` when the packet is complete — **never move directly to `Todo`**. The Todo state is reserved for the triage agent's decision; skipping the triage lane is a routing bug. If research is blocked by missing access or human judgment, move to `Human Review` with the exact unblock action.
 
 ## Triage flow (`Needs Triage`)
 
-1. Find or create the single persistent `## Codex Workpad` comment.
-2. Reconcile issue readiness:
-   - labels match the work type and readiness;
-   - parent and blocker relations are present in Linear;
-   - acceptance criteria and validation commands are specific enough for an unattended run;
-   - the target repo is explicit and not confused with the Symphony runner repo.
-3. Keep product and Symphony files unchanged.
-4. Move the issue to:
+1. **Read the existing `## Codex Workpad` comment first**, especially the `### Research Packet` section produced by the upstream research lane. Your decisions are a function of that packet — do not re-derive readiness from the raw issue description if a packet exists. If no `### Research Packet` is present, note that as a Confusion and proceed conservatively.
+2. Update the `### Triage` section of the workpad with:
+   - readiness verdict (ready / not ready / human-review-needed) and the chosen target state;
+   - label reconciliation notes (what was wrong, what was changed in Linear);
+   - blocker reconciliation notes (parent/blocker relations added or cleared);
+   - target-repo confirmation (Dayplayer vs. Symphony runner);
+   - seeded `### Acceptance Criteria` and `### Validation` items — copy or sharpen from the issue body / research packet so the implementation lane finds them already present.
+3. Reconcile issue readiness in Linear (labels, parent, blocker relations) to match the workpad's `### Triage` notes.
+4. Keep product and Symphony files unchanged.
+5. Move the issue to:
    - `Todo` if it is implementation-ready and unblocked;
    - `Backlog` if more planning/research is needed but no human action is required;
    - `Human Review` if human judgment, credentials, or destructive access is required.
-5. Do not open a PR.
+6. Do not open a PR.
 
 ## Step 1: Start/continue execution (Todo or In Progress)
 
@@ -306,11 +308,12 @@ Use this only when completion is blocked by missing required tools or missing au
 1. Treat `Rework` as a full approach reset, not incremental patching.
 2. Re-read the full issue body and all human comments; explicitly identify what will be done differently this attempt.
 3. Close the existing PR tied to the issue.
-4. Remove the existing `## Codex Workpad` comment from the issue.
-5. Create a fresh branch from `origin/main`.
-6. Start over from the normal kickoff flow:
+4. **Archive, do not delete, the existing `## Codex Workpad`**. Copy its full content into a new sibling comment whose first line is `## Codex Workpad (Archived attempt N)` — substitute `N` with the next sequential attempt number based on prior archives. The fresh attempt re-reads the archived `### Research Packet` and `### Triage` sections so upstream context is not lost.
+5. Replace the active `## Codex Workpad` comment body with a fresh bootstrap (Plan / Acceptance Criteria / Validation / Notes / Confusions empty) — do not delete the comment itself, so its ID remains stable.
+6. Create a fresh branch from `origin/main`.
+7. Start over from the normal kickoff flow:
    - If current issue state is `Todo`, move it to `In Progress`; otherwise keep the current state.
-   - Create a new bootstrap `## Codex Workpad` comment.
+   - Read the most recent `## Codex Workpad (Archived attempt N)` comment to recover the prior research packet and triage decisions; explicitly note in the new workpad which prior conclusions you are keeping vs. revisiting.
    - Build a fresh plan/checklist and execute end-to-end.
 
 ## Completion bar before Human Review
@@ -354,6 +357,27 @@ Use this exact structure for the persistent workpad comment and keep it updated 
 <hostname>:<abs-path>@<short-sha>
 ```
 
+### Research Packet
+
+<written by the research lane; consumed by the triage lane and downstream>
+
+- verified facts: <bullets>
+- relevant files / sources: <bullets>
+- current implementation state: <bullets>
+- inferences: <bullets>
+- risks and unknowns: <bullets>
+- recommended planner / triage inputs: <bullets>
+
+### Triage
+
+<written by the triage lane; consumed by the implementation lane>
+
+- readiness verdict: <ready | not-ready | human-review-needed>
+- target state chosen: <Todo | Backlog | Human Review>
+- label reconciliation: <bullets — what was wrong, what changed>
+- blocker reconciliation: <bullets — parent/blocker relations added or cleared>
+- target repo confirmation: <Dayplayer | Symphony runner>
+
 ### Plan
 
 - [ ] 1\. Parent task
@@ -376,5 +400,5 @@ Use this exact structure for the persistent workpad comment and keep it updated 
 
 ### Confusions
 
-- <only include when something was confusing during execution>
+- <only include when something was confusing during execution; doc-gardener sweeps these into follow-up issues>
 ````
