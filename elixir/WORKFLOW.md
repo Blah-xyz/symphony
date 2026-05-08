@@ -38,9 +38,8 @@ agent:
     Needs Triage: 1
     Todo: 1
 codex:
-  command: '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"${CODEX_MODEL:-gpt-5.5}\"" --config model_reasoning_effort=xhigh app-server'
+  command: '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"${CODEX_MODEL:-gpt-5.5}\"" --config model_reasoning_effort=medium app-server'
   command_by_state:
-    "Needs Research": '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"gpt-5.5\"" --config model_reasoning_effort=high app-server'
     "Needs Triage": '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"gpt-5.3-codex-spark\"" --config model_reasoning_effort=low app-server'
     "Merging": '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"gpt-5.4-mini\"" --config model_reasoning_effort=medium app-server'
   approval_policy: never
