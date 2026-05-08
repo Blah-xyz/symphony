@@ -1,0 +1,40 @@
+{
+  "repo": {
+    "owner": "vstlouis",
+    "name": "agent-factory-dayplayer",
+    "defaultBranch": "main",
+    "pullRequestBase": "main"
+  },
+  "issueTracker": {
+    "kind": "linear",
+    "projectSlug": "f4e9aba66020",
+    "apiKeyEnv": "LINEAR_API_KEY",
+    "activeStates": ["Needs Research", "Needs Triage", "Todo", "In Progress", "Merging", "Rework"],
+    "humanReviewState": "Human Review",
+    "terminalStates": ["Done", "Closed", "Cancelled", "Canceled", "Duplicate"]
+  },
+  "workspace": {
+    "root": "$SYMPHONY_WORKSPACE_ROOT",
+    "sourceRepoUrl": "git@github.com:vstlouis/agent-factory-dayplayer.git",
+    "branchPattern": "linear-branch-name-or-codex/<linear-identifier>-<title-kebab>",
+    "envAllowlist": [".env.local", ".env.development.local", ".env.test.local"]
+  },
+  "agents": {
+    "orchestrator": "agents/orchestrator/SYSTEM_PROMPT.md",
+    "research": "agents/research-agent/SYSTEM_PROMPT.md",
+    "triage": "agents/triage-agent/SYSTEM_PROMPT.md",
+    "planner": "agents/planner-agent/SYSTEM_PROMPT.md",
+    "implementation": "agents/implementation-agent/SYSTEM_PROMPT.md",
+    "verification": "agents/verification-agent/SYSTEM_PROMPT.md",
+    "review": "agents/review-agent/SYSTEM_PROMPT.md",
+    "docGardener": "agents/doc-gardener/SYSTEM_PROMPT.md"
+  },
+  "validation": {
+    "defaultCommands": [
+      "bun run lint",
+      "bun run i18n:check",
+      "bun run test"
+    ],
+    "codegenCommand": "bun run convex:codegen"
+  }
+}

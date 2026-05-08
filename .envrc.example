@@ -1,0 +1,11 @@
+# Copy to .envrc or source another trusted local env file. Do not commit real values.
+
+export LINEAR_API_KEY=
+export SYMPHONY_WORKSPACE_ROOT=/Users/moostybeard/code/src/github.com/xprojects/harness/blah-symphony-workspaces
+export SYMPHONY_PORT=4321
+export SOURCE_REPO_URL=git@github.com:vstlouis/agent-factory-dayplayer.git
+export CODEX_BIN=codex
+export CODEX_MODEL=gpt-5.5
+
+export GIT_AUTHOR_NAME=
+export GIT_AUTHOR_EMAIL=

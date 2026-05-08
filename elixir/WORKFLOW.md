@@ -1,8 +1,10 @@
 ---
 tracker:
   kind: linear
-  project_slug: "symphony-0c79b11b75ea"
+  project_slug: "f4e9aba66020"
   active_states:
+    - Needs Research
+    - Needs Triage
     - Todo
     - In Progress
     - Merging
@@ -16,20 +18,27 @@ tracker:
 polling:
   interval_ms: 5000
 workspace:
-  root: ~/code/symphony-workspaces
+  root: $SYMPHONY_WORKSPACE_ROOT
 hooks:
   after_create: |
-    git clone --depth 1 https://github.com/openai/symphony .
-    if command -v mise >/dev/null 2>&1; then
-      cd elixir && mise trust && mise exec -- mix deps.get
+    set -e
+    git clone --depth 1 "${SOURCE_REPO_URL:-git@github.com:vstlouis/agent-factory-dayplayer.git}" .
+    if [ -n "${WORKSPACE_ENV_FILE:-}" ] && [ -f "${WORKSPACE_ENV_FILE}" ]; then
+      cp "${WORKSPACE_ENV_FILE}" ./.env.local
+      echo "Copied ${WORKSPACE_ENV_FILE} -> .env.local"
+    else
+      echo "WORKSPACE_ENV_FILE unset or missing (${WORKSPACE_ENV_FILE:-<unset>}); workspace starts without .env.local" >&2
     fi
-  before_remove: |
-    cd elixir && mise exec -- mix workspace.before_remove
+    echo "Workspace cloned. Install dependencies only when the routed issue needs validation."
 agent:
   max_concurrent_agents: 10
   max_turns: 20
+  max_concurrent_agents_by_state:
+    Needs Research: 1
+    Needs Triage: 1
+    Todo: 1
 codex:
-  command: codex --config shell_environment_policy.inherit=all --config 'model="gpt-5.5"' --config model_reasoning_effort=xhigh app-server
+  command: '${CODEX_BIN:-codex} --config shell_environment_policy.inherit=all --config "model=\"${CODEX_MODEL:-gpt-5.5}\"" --config model_reasoning_effort=xhigh app-server'
   approval_policy: never
   thread_sandbox: workspace-write
   turn_sandbox_policy:
@@ -60,6 +69,18 @@ Description:
 {% else %}
 No description provided.
 {% endif %}
+
+Repository context:
+
+- Target repo: `vstlouis/agent-factory-dayplayer`
+- Runner repo: `Blah-xyz/symphony`
+- Product runtime root: repository root
+- Runner runtime root: `elixir/`
+- Base branch and PR target: `main`
+- Work source: Linear only
+- Do not import local markdown issue folders or use GitHub Issues for dispatch.
+- Read Dayplayer `AGENTS.md`, `README.md`, `CONTEXT-MAP.md`, relevant `docs/agents/*`, and relevant `.agents/skills/*` before editing product code.
+- Do not modify the Symphony runner repository from a Dayplayer Linear issue. Symphony runner changes must be handled manually in the runner checkout, not through this dispatch flow.
 
 Instructions:
 
@@ -104,6 +125,8 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
 ## Status map
 
 - `Backlog` -> out of scope for this workflow; do not modify.
+- `Needs Research` -> research lane; run research-agent behavior only, do not edit code, write or update a concise research packet, then move the issue to `Needs Triage`.
+- `Needs Triage` -> triage lane; run triage-agent behavior only, do not edit code, reconcile labels/blockers/readiness, then move the issue to `Todo` if ready, `Backlog` if not ready, or `Human Review` if human judgment/access is required.
 - `Todo` -> queued; immediately transition to `In Progress` before active work.
   - Special case: if a PR is already attached, treat as feedback/rework loop (run full PR feedback sweep, address or explicitly push back, revalidate, return to `Human Review`).
 - `In Progress` -> implementation actively underway.
@@ -118,6 +141,8 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
 2. Read the current state.
 3. Route to the matching flow:
    - `Backlog` -> do not modify issue content/state; stop and wait for human to move it to `Todo`.
+   - `Needs Research` -> run research flow only, keep product files unchanged, update the workpad with a `## Research Packet`, and move the issue to `Needs Triage`.
+   - `Needs Triage` -> run triage flow only, keep product files unchanged, update Linear labels/blockers/readiness notes, and move the issue to `Todo`, `Backlog`, or `Human Review` according to readiness.
    - `Todo` -> immediately move to `In Progress`, then ensure bootstrap workpad comment exists (create if missing), then start execution flow.
      - If PR is already attached, start by reviewing all open PR comments and deciding required changes vs explicit pushback responses.
    - `In Progress` -> continue execution flow from current scratchpad comment.
@@ -133,6 +158,35 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
    - find/create `## Codex Workpad` bootstrap comment
    - only then begin analysis/planning/implementation work.
 6. Add a short comment if state and issue content are inconsistent, then proceed with the safest flow.
+
+## Research flow (`Needs Research`)
+
+1. Find or create the single persistent `## Codex Workpad` comment.
+2. Add or update a `## Research Packet` section with:
+   - verified facts;
+   - relevant files and sources;
+   - current implementation state;
+   - inferences;
+   - risks and unknowns;
+   - recommended planner and triage inputs.
+3. Do not edit product code, Symphony code, runtime config, or repo docs unless the issue is explicitly a docs-only workflow issue and the state has been changed out of `Needs Research`.
+4. Do not open a PR.
+5. Move the issue to `Needs Triage` when the packet is complete. If research is blocked by missing access or human judgment, move to `Human Review` with the exact unblock action.
+
+## Triage flow (`Needs Triage`)
+
+1. Find or create the single persistent `## Codex Workpad` comment.
+2. Reconcile issue readiness:
+   - labels match the work type and readiness;
+   - parent and blocker relations are present in Linear;
+   - acceptance criteria and validation commands are specific enough for an unattended run;
+   - the target repo is explicit and not confused with the Symphony runner repo.
+3. Keep product and Symphony files unchanged.
+4. Move the issue to:
+   - `Todo` if it is implementation-ready and unblocked;
+   - `Backlog` if more planning/research is needed but no human action is required;
+   - `Human Review` if human judgment, credentials, or destructive access is required.
+5. Do not open a PR.
 
 ## Step 1: Start/continue execution (Todo or In Progress)
 

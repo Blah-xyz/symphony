@@ -1,0 +1,13 @@
+.DS_Store
+.envrc
+.env
+.env.*
+!.env.example
+!.envrc.example
+log/
+tmp/
+*.log
+elixir/_build/
+elixir/deps/
+elixir/log/
+elixir/.elixir_ls/

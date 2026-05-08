@@ -49,6 +49,7 @@ Symphony stops the active agent for that issue and cleans up matching workspaces
 We recommend using [mise](https://mise.jdx.dev/) to manage Elixir/Erlang versions.
 
 ```bash
+brew install mise
 mise install
 mise exec -- elixir --version
 ```
@@ -56,14 +57,28 @@ mise exec -- elixir --version
 ## Run
 
 ```bash
-git clone https://github.com/openai/symphony
+git clone https://github.com/Blah-xyz/symphony
 cd symphony/elixir
 mise trust
 mise install
 mise exec -- mix setup
 mise exec -- mix build
+export LINEAR_API_KEY=...
+export SYMPHONY_WORKSPACE_ROOT=/Users/moostybeard/code/src/github.com/xprojects/harness/blah-symphony-workspaces
+export SOURCE_REPO_URL=git@github.com:vstlouis/agent-factory-dayplayer.git
+export CODEX_BIN=codex
+export CODEX_MODEL=gpt-5.5
 mise exec -- ./bin/symphony ./WORKFLOW.md
 ```
+
+If using `direnv`, put these values in the repository root `.envrc` before entering `elixir/`.
+The workspace root should point outside the source checkout so generated per-issue workspaces do
+not pollute the runner repository. `SOURCE_REPO_URL` is the repo cloned into each issue workspace;
+for the Dayplayer workflow it should point at `vstlouis/agent-factory-dayplayer`, not this Symphony
+runner repo.
+
+For the Dayplayer Linear project and role prompts, see
+[`../docs/dayplayer-agent-workflow/README.md`](../docs/dayplayer-agent-workflow/README.md).
 
 ## Configuration
 
