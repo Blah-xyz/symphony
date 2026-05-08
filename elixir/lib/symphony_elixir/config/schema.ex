@@ -155,9 +155,12 @@ defmodule SymphonyElixir.Config.Schema do
     use Ecto.Schema
     import Ecto.Changeset
 
+    alias SymphonyElixir.Config.Schema
+
     @primary_key false
     embedded_schema do
       field(:command, :string, default: "codex app-server")
+      field(:command_by_state, :map, default: %{})
 
       field(:approval_policy, StringOrMap,
         default: %{
@@ -183,6 +186,7 @@ defmodule SymphonyElixir.Config.Schema do
         attrs,
         [
           :command,
+          :command_by_state,
           :approval_policy,
           :thread_sandbox,
           :turn_sandbox_policy,
@@ -193,6 +197,8 @@ defmodule SymphonyElixir.Config.Schema do
         empty_values: []
       )
       |> validate_required([:command])
+      |> update_change(:command_by_state, &Schema.normalize_state_commands/1)
+      |> Schema.validate_state_commands(:command_by_state)
       |> validate_number(:turn_timeout_ms, greater_than: 0)
       |> validate_number(:read_timeout_ms, greater_than: 0)
       |> validate_number(:stall_timeout_ms, greater_than_or_equal_to: 0)
@@ -343,6 +349,35 @@ defmodule SymphonyElixir.Config.Schema do
 
           not is_integer(limit) or limit <= 0 ->
             [{field, "limits must be positive integers"}]
+
+          true ->
+            []
+        end
+      end)
+    end)
+  end
+
+  @doc false
+  @spec normalize_state_commands(nil | map()) :: map()
+  def normalize_state_commands(nil), do: %{}
+
+  def normalize_state_commands(commands) when is_map(commands) do
+    Enum.reduce(commands, %{}, fn {state_name, command}, acc ->
+      Map.put(acc, normalize_issue_state(to_string(state_name)), command)
+    end)
+  end
+
+  @doc false
+  @spec validate_state_commands(Ecto.Changeset.t(), atom()) :: Ecto.Changeset.t()
+  def validate_state_commands(changeset, field) do
+    validate_change(changeset, field, fn ^field, commands ->
+      Enum.flat_map(commands, fn {state_name, command} ->
+        cond do
+          to_string(state_name) == "" ->
+            [{field, "state names must not be blank"}]
+
+          not is_binary(command) or String.trim(command) == "" ->
+            [{field, "commands must be non-empty strings"}]
 
           true ->
             []
